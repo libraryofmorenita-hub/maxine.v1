@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAXINE.v1 — Voice Activated Recovery Companion</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --white: #ffffff;
+    --off-white: #f8fafc;
+    --light: #f1f5f9;
+    --border: #e2e8f0;
+    --border-dark: #cbd5e1;
+    --muted: #64748b;
+    --body: #334155;
+    --heading: #0f172a;
+    --blue: #2563eb;
+    --blue-light: #3b82f6;
+    --blue-pale: #eff6ff;
+    --blue-mid: #dbeafe;
+    --teal: #0891b2;
+    --teal-pale: #ecfeff;
+    --green: #16a34a;
+    --green-pale: #f0fdf4;
+    --red: #dc2626;
+    --amber: #d97706;
+    --card: #ffffff;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--off-white);
+    color: var(--body);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 12px; }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+  .nav-name { font-size: 15px; font-weight: 700; color: var(--heading); letter-spacing: -0.02em; }
+  .nav-version { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; background: var(--light); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a { color: var(--muted); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--heading); }
+  .nav-cta { background: var(--blue); color: white; font-size: 13px; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 500; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f2744 100%);
+    padding: 100px 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(8,145,178,0.08) 0%, transparent 50%);
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 11px; color: #93c5fd; letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; }
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800; color: white; line-height: 1.05;
+    letter-spacing: -0.03em; margin-bottom: 20px;
+  }
+  .hero h1 span { color: #60a5fa; }
+  .hero-sub { font-size: 18px; color: #94a3b8; max-width: 560px; margin-bottom: 40px; line-height: 1.7; }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 48px; }
+  .hero-tag {
+    font-size: 12px; padding: 6px 14px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
+    letter-spacing: 0.04em;
+  }
+  .hero-stats { display: grid; grid-template-columns: repeat(3, auto); gap: 48px; display: flex; flex-wrap: wrap; gap: 48px; }
+  .hero-stat-num { font-size: 40px; font-weight: 800; color: white; letter-spacing: -0.03em; line-height: 1; }
+  .hero-stat-label { font-size: 12px; color: #64748b; margin-top: 6px; letter-spacing: 0.06em; }
+  .hero-divider { width: 1px; height: 48px; background: rgba(255,255,255,0.1); align-self: center; }
+
+  /* SECTIONS */
+  .section { padding: 80px 48px; max-width: 1100px; margin: 0 auto; }
+  .section-full { padding: 80px 0; background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .section-full .inner { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+
+  .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; font-weight: 600; }
+  h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 800; color: var(--heading); letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.15; }
+  h3 { font-size: 18px; font-weight: 700; color: var(--heading); margin-bottom: 8px; }
+  p.lead { font-size: 17px; color: var(--muted); line-height: 1.75; max-width: 600px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); }
+  .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+  .card-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+
+  /* FEATURE CARDS */
+  .feature-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; }
+  .icon-blue { background: var(--blue-mid); }
+  .icon-teal { background: var(--teal-pale); }
+  .icon-green { background: var(--green-pale); }
+  .icon-red { background: #fef2f2; }
+  .feature-card p { font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.65; }
+
+  /* COMMAND TABLE */
+  .cmd-table { width: 100%; border-collapse: collapse; margin-top: 32px; }
+  .cmd-table th { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 12px 16px; text-align: left; background: var(--light); border-bottom: 1px solid var(--border); }
+  .cmd-table th:first-child { border-radius: 8px 0 0 0; }
+  .cmd-table th:last-child { border-radius: 0 8px 0 0; }
+  .cmd-table td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .cmd-table tr:last-child td { border-bottom: none; }
+  .cmd-table tr:hover td { background: var(--blue-pale); }
+  .cmd-code { font-family: 'SF Mono', 'Fira Code', monospace; background: var(--light); padding: 3px 8px; border-radius: 4px; font-size: 12px; color: var(--blue); border: 1px solid var(--border); }
+  .cmd-channel { font-size: 12px; color: var(--muted); }
+  .cmd-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+  .dot-green { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .dot-red { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+
+  /* ARCHITECTURE */
+  .arch-split { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 40px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .arch-box { padding: 36px; }
+  .arch-top { background: linear-gradient(135deg, #0f172a, #1e3a5f); }
+  .arch-bottom { background: linear-gradient(135deg, #1e293b, #0f2744); }
+  .arch-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #60a5fa; margin-bottom: 16px; font-weight: 600; }
+  .arch-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 20px; }
+  .arch-items { display: flex; flex-direction: column; gap: 10px; }
+  .arch-item { display: flex; gap: 12px; align-items: flex-start; }
+  .arch-dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; margin-top: 6px; flex-shrink: 0; }
+  .arch-item-text { }
+  .arch-item-name { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+  .arch-item-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  /* SAFETY */
+  .safety-layers { display: flex; flex-direction: column; gap: 2px; margin-top: 40px; }
+  .safety-layer { display: flex; gap: 20px; align-items: flex-start; background: var(--card); border: 1px solid var(--border); padding: 20px 24px; }
+  .safety-layer:first-child { border-radius: 10px 10px 0 0; }
+  .safety-layer:last-child { border-radius: 0 0 10px 10px; }
+  .safety-num { font-size: 11px; font-weight: 700; color: var(--blue); background: var(--blue-pale); border: 1px solid var(--blue-mid); border-radius: 4px; padding: 3px 8px; letter-spacing: 0.06em; flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
+  .safety-content h4 { font-size: 14px; font-weight: 700; color: var(--heading); margin-bottom: 4px; }
+  .safety-content p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+  /* METRICS */
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+  .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); }
+  .metric-num { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
+  .metric-green { color: var(--green); }
+  .metric-blue { color: var(--blue); }
+  .metric-teal { color: var(--teal); }
+  .metric-label { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
+  .metric-sub { font-size: 13px; color: var(--body); margin-top: 8px; line-height: 1.5; }
+
+  /* PROTOTYPE IMAGES */
+  .proto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+  .proto-placeholder { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border: 2px dashed var(--border-dark); border-radius: 12px; padding: 60px 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px; text-align: center; }
+  .proto-placeholder-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.4; }
+  .proto-placeholder h4 { font-size: 16px; font-weight: 700; color: var(--heading); margin-bottom: 6px; }
+  .proto-placeholder p { font-size: 13px; color: var(--muted); }
+  .proto-label { display: inline-block; margin-top: 12px; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--blue); background: var(--blue-pale); border: 1px solid var(--blue-mid); border-radius: 4px; padding: 4px 10px; }
+
+  /* MERMAID */
+  .diagram-wrap { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 40px; margin-top: 40px; overflow-x: auto; }
+
+  /* PIPELINE STEPS */
+  .pipeline { display: flex; gap: 0; margin-top: 40px; overflow-x: auto; }
+  .pipe-step { flex: 1; min-width: 130px; padding: 20px 16px; background: var(--card); border: 1px solid var(--border); text-align: center; position: relative; }
+  .pipe-step:first-child { border-radius: 10px 0 0 10px; }
+  .pipe-step:last-child { border-radius: 0 10px 10px 0; }
+  .pipe-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--blue); z-index: 1; }
+  .pipe-icon { font-size: 24px; margin-bottom: 10px; display:flex; justify-content:center; }
+  .pipe-title { font-size: 12px; font-weight: 700; color: var(--heading); margin-bottom: 4px; }
+  .pipe-sub { font-size: 11px; color: var(--muted); }
+
+  /* OPEN SOURCE */
+  .os-banner { background: linear-gradient(135deg, #0f172a, #1e3a5f); border-radius: 16px; padding: 48px; margin-top: 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
+  .os-banner h3 { font-size: 24px; font-weight: 800; color: white; }
+  .os-banner p { font-size: 14px; color: #94a3b8; margin-top: 6px; max-width: 480px; line-height: 1.65; }
+  .os-btn { background: var(--blue); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: var(--white); }
+  footer p { font-size: 13px; color: var(--muted); }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 80px 24px 60px; }
+    .section { padding: 60px 24px; }
+    .card-grid-3, .card-grid-2, .arch-split, .proto-grid, .metric-grid { grid-template-columns: 1fr; }
+    .pipeline { flex-direction: column; }
+    .pipe-step { border-radius: 8px !important; }
+    .pipe-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-dot"></div>
+    <span class="nav-name">MAXINE</span>
+    <span class="nav-version">v1.0 · Open Source</span>
+  </div>
+  <div class="nav-links">
+    <a href="#system">System</a>
+    <a href="#commands">Commands</a>
+    <a href="#safety">Safety</a>
+    <a href="#prototype">Prototype</a>
+    <a href="#pipeline">Pipeline</a>
+  </div>
+  <a href="https://github.com" class="nav-cta">View on GitHub</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">VME Clinically Validated · Volunteers for Medical Engineering</div>
+    <h1>MAXINE<span>.v1</span><br>Recovery Companion</h1>
+    <p class="hero-sub">A voice-activated hospital bed interface engineered to restore physical autonomy for quadriplegic patients — removing the barrier between intention and action.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">Embedded C++</span>
+      <span class="hero-tag">VR3 Voice Recognition</span>
+      <span class="hero-tag">7-Channel Relay Logic</span>
+      <span class="hero-tag">Arduino</span>
+      <span class="hero-tag">Dual-Enclosure HMI</span>
+      <span class="hero-tag">Open Source · MIT</span>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">10/10</div>
+        <div class="hero-stat-label">Command recognition accuracy</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">7</div>
+        <div class="hero-stat-label">Relay channels · bed functions</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">5</div>
+        <div class="hero-stat-label">Safety architecture layers</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MISSION -->
+<section class="section" id="mission">
+  <div class="eyebrow">The Mission</div>
+  <h2>Restoring autonomy.<br>One command at a time.</h2>
+  <p class="lead" style="margin-bottom:24px;">For a quadriplegic patient, the inability to independently adjust their position is not a minor inconvenience — it is a daily erosion of dignity. Existing hospital bed controls require manual dexterity. Standard call systems require physical button access. For patients with cervical spinal cord injuries, ALS, or advanced neuromuscular conditions, these interfaces are inaccessible by design.</p>
+  <p class="lead"><em>Cura Personalis</em> — care for the whole person — demands better. MAXINE was built in direct partnership with Volunteers for Medical Engineering (VME) to address exactly this clinical gap.</p>
+
+  <div class="card-grid-3" style="margin-top:48px;">
+    <div class="card">
+      <div class="feature-icon icon-blue" style="color:#2563eb;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg></div>
+      <h3>Voice First</h3>
+      <p class="feature-card p">Patients issue natural voice commands to control bed position. No buttons. No physical reach. No dependency on caregiver availability.</p>
+    </div>
+    <div class="card">
+      <div class="feature-icon icon-teal" style="color:#0891b2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="12" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg></div>
+      <h3>LCD Feedback Loop</h3>
+      <p class="feature-card p">Every command echoed to a 16×2 LCD display and confirmed via speaker. The patient always knows system state. No silent failures.</p>
+    </div>
+    <div class="card">
+      <div class="feature-icon icon-red" style="color:#dc2626;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <h3>CALL HELP Interrupt</h3>
+      <p class="feature-card p">A hardwired safety interrupt on Channel 7 — accessible even during system hold states. Emergency access is never blocked by system constraints.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- SYSTEM ARCHITECTURE -->
+<div class="section-full" id="system">
+  <div class="inner">
+    <div class="eyebrow">System Architecture</div>
+    <h2>The Dual-Enclosure Interface</h2>
+    <p class="lead">A deliberate architectural separation isolates user-facing communication from safety-critical actuator control — a systems integrity decision driven by safety, maintainability, and clinical compliance.</p>
+
+    <div class="arch-split">
+      <div class="arch-box arch-top">
+        <div class="arch-label">Top Enclosure</div>
+        <div class="arch-title">User Interface Layer</div>
+        <div class="arch-items">
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">VR3 Voice Recognition Module</div><div class="arch-item-desc">Speaker-dependent, digital signal output</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Arduino Microcontroller</div><div class="arch-item-desc">Signal processing, validation, command routing</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">16×2 LCD Display</div><div class="arch-item-desc">Real-time command echo and system status</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Speaker Module</div><div class="arch-item-desc">Audio confirmation of received commands</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Patient-Facing Enclosure</div><div class="arch-item-desc">Ergonomic, bedside-accessible form factor</div></div></div>
+        </div>
+      </div>
+      <div class="arch-box arch-bottom">
+        <div class="arch-label">Bottom Enclosure</div>
+        <div class="arch-title">Actuator Control Layer</div>
+        <div class="arch-items">
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">7-Channel Relay Logic Board</div><div class="arch-item-desc">Isolated switching for 7 bed functions</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Hospital Bed Motor Interface</div><div class="arch-item-desc">Direct integration with bed actuator system</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Safety Interrupt Circuit</div><div class="arch-item-desc">Hardwired CALL HELP on Channel 7</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">High-Current Isolation Layer</div><div class="arch-item-desc">Electrical separation from user interface</div></div></div>
+          <div class="arch-item"><div class="arch-dot"></div><div class="arch-item-text"><div class="arch-item-name">Actuator Signal Routing</div><div class="arch-item-desc">Per-channel relay switching logic</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMANDS -->
+<section class="section" id="commands">
+  <div class="eyebrow">Command Set</div>
+  <h2>Seven commands.<br>Complete bed control.</h2>
+  <p class="lead">The full MAXINE command set maps natural patient language to the seven relay channels controlling all primary hospital bed functions.</p>
+
+  <table class="cmd-table" style="margin-top:32px; background:white; border-radius:10px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow);">
+    <thead>
+      <tr>
+        <th>Voice Command</th>
+        <th>Function</th>
+        <th>Relay Channel</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="cmd-code">"HEAD UP"</span></td><td>Raise head section</td><td><span class="cmd-channel">CH-1</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr><td><span class="cmd-code">"HEAD DOWN"</span></td><td>Lower head section</td><td><span class="cmd-channel">CH-2</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr><td><span class="cmd-code">"FEET UP"</span></td><td>Raise foot section</td><td><span class="cmd-channel">CH-3</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr><td><span class="cmd-code">"FEET DOWN"</span></td><td>Lower foot section</td><td><span class="cmd-channel">CH-4</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr><td><span class="cmd-code">"BED UP"</span></td><td>Raise full bed height</td><td><span class="cmd-channel">CH-5</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr><td><span class="cmd-code">"BED DOWN"</span></td><td>Lower full bed height</td><td><span class="cmd-channel">CH-6</span></td><td><span class="cmd-status"><span class="dot-green"></span>Active</span></td></tr>
+      <tr style="background:#fef2f2;"><td><span class="cmd-code" style="color:var(--red); border-color:#fecaca; background:#fff1f2;">"CALL HELP"</span></td><td><strong>Safety interrupt · Nurse call</strong></td><td><span class="cmd-channel">CH-7 · Hardwired</span></td><td><span class="cmd-status"><span class="dot-red"></span>Priority</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr>
+
+<!-- SAFETY -->
+<div class="section-full" id="safety" style="background:var(--light);">
+  <div class="inner">
+    <div class="eyebrow">Reliability Engineering</div>
+    <h2>Five layers of safety.<br>Zero silent failures.</h2>
+    <p class="lead">MAXINE was designed with a defense-in-depth safety philosophy. Every failure mode was anticipated, documented, and mitigated before benchtop validation.</p>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-num metric-green">100%</div>
+        <div class="metric-label">Command accuracy · low-noise</div>
+        <div class="metric-sub">10/10 commands recognized correctly in controlled clinical environment conditions</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num metric-blue">7/7</div>
+        <div class="metric-label">Relay channels validated</div>
+        <div class="metric-sub">All bed functions actuated correctly across the full command set during benchtop testing</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-num metric-teal">5</div>
+        <div class="metric-label">Safety architecture layers</div>
+        <div class="metric-sub">Recognition threshold, command validation, noise protocol, CALL HELP interrupt, feedback loop</div>
+      </div>
+    </div>
+
+    <div class="safety-layers">
+      <div class="safety-layer"><span class="safety-num">L1</span><div class="safety-content"><h4>Recognition Threshold</h4><p>The VR3 module is configured with a confidence threshold below which commands are rejected rather than approximated. An uncertain command produces no actuation — it is better to ask again than to move incorrectly.</p></div></div>
+      <div class="safety-layer"><span class="safety-num">L2</span><div class="safety-content"><h4>Command Validation</h4><p>The Arduino validates every received signal against the known command set before routing to any relay channel. Unrecognized signals trigger a hold state and LCD error display. No unintended actuation is possible.</p></div></div>
+      <div class="safety-layer"><span class="safety-num">L3</span><div class="safety-content"><h4>High-Noise Protocol</h4><p>In environments where ambient noise exceeds reliable recognition thresholds, the system enters a conservative safety hold. The LCD displays the noise state. All bed movement stops. The environment must stabilize before commands resume.</p></div></div>
+      <div class="safety-layer"><span class="safety-num">L4</span><div class="safety-content"><h4>CALL HELP Interrupt</h4><p>Channel 7 is hardwired as a safety interrupt — reserved exclusively for nurse call. It remains accessible even when all other channels are in hold state, ensuring emergency access is never blocked by system constraints.</p></div></div>
+      <div class="safety-layer" style="border-radius:0 0 10px 10px;"><span class="safety-num">L5</span><div class="safety-content"><h4>Feedback Loop</h4><p>Every command — successful or failed — produces an LCD display response and speaker confirmation. The patient always knows the system state. No silent failures. No ambiguity about whether the command was received.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROTOTYPE -->
+<section class="section" id="prototype">
+  <div class="eyebrow">The Prototype</div>
+  <h2>Benchtop validated.<br>Clinically reviewed.</h2>
+  <p class="lead">MAXINE.v1 was built from schematic to functional prototype and validated through Volunteers for Medical Engineering. The physical hardware demonstrated all seven commands, full relay actuation, and safety layer performance.</p>
+
+  <div class="proto-grid">
+    <div class="proto-placeholder">
+      <div class="proto-placeholder-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+      <h4>MAXINE Prototype</h4>
+      <p>Dual-enclosure HMI — user interface layer with VR3, Arduino, LCD, and speaker</p>
+      <span class="proto-label">Replace with prototype photo</span>
+    </div>
+    <div class="proto-placeholder">
+      <div class="proto-placeholder-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+      <h4>Relay Control Unit</h4>
+      <p>Bottom enclosure — 7-channel relay logic board and bed actuator interface</p>
+      <span class="proto-label">Replace with hardware photo</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; background:var(--blue-pale); border:1px solid var(--blue-mid); border-radius:10px; padding:24px 28px;">
+    <p style="font-size:14px; color:var(--body);"><strong style="color:var(--blue);">Validation Summary:</strong> All 7 relay channels actuated correctly · LCD accurately echoed all commands · Speaker confirmation on every recognition event · Safety hold engaged under high-noise simulation · CALL HELP accessible independently of all system states · Reviewed by Volunteers for Medical Engineering</p>
+  </div>
+</section>
+
+<hr>
+
+<!-- SIGNAL PIPELINE -->
+<div class="section-full" id="pipeline">
+  <div class="inner">
+    <div class="eyebrow">Signal Flow</div>
+    <h2>From voice to motion.<br>Every step validated.</h2>
+    <p class="lead">MAXINE's signal pipeline moves from patient audio input through embedded processing to physical bed actuation — with confirmation at every step.</p>
+
+    <div class="pipeline" style="margin-top:40px;">
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg></div><div class="pipe-title">Voice Input</div><div class="pipe-sub">Patient audio command</div></div>
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div><div class="pipe-title">VR3 Module</div><div class="pipe-sub">Voice recognition · digital signal</div></div>
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div><div class="pipe-title">Arduino MCU</div><div class="pipe-sub">Signal processing · validation</div></div>
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="12" rx="2"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="12" y1="16" x2="12" y2="20"/></svg></div><div class="pipe-title">LCD + Speaker</div><div class="pipe-sub">Confirmation feedback loop</div></div>
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="pipe-title">Relay Logic</div><div class="pipe-sub">7-channel actuation</div></div>
+      <div class="pipe-step"><div class="pipe-icon" style="color:#1e293b;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3"/><path d="M2 11v6a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-6"/><rect x="6" y="9" width="12" height="2" rx="1"/><line x1="2" y1="18" x2="2" y2="21"/><line x1="22" y1="18" x2="22" y2="21"/></svg></div><div class="pipe-title">Bed Movement</div><div class="pipe-sub">Physical position change</div></div>
+    </div>
+
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    A["User Audio Command\nPatient Voice Input"] --> B["VR3 Module\nVoice Recognition\nDigital Signal Output"]
+    B --> C["Arduino MCU\nSignal Processing\n& Validation"]
+    C --> D["LCD Display\n+ Speaker\nConfirmation Loop"]
+    C --> E{"Command\nValidation Layer"}
+    E -->|"Valid · Low Noise"| F["7-Channel Relay\nActuation Logic"]
+    E -->|"High Noise · Invalid"| G["Safety Hold\nError State → LCD"]
+    F --> H1["CH 1–6\nBed Position"]
+    F --> H2["CH 7\nCALL HELP"]
+    H1 --> I["Hospital Bed\nMotor System"]
+    G --> D
+
+    style A fill:#0f172a,stroke:#3b82f6,color:#f8fafc
+    style B fill:#0f172a,stroke:#3b82f6,color:#f8fafc
+    style C fill:#0f172a,stroke:#3b82f6,color:#f8fafc
+    style D fill:#0f172a,stroke:#60a5fa,color:#f8fafc
+    style E fill:#0f172a,stroke:#f59e0b,color:#f8fafc
+    style F fill:#0f172a,stroke:#22c55e,color:#f8fafc
+    style G fill:#0f172a,stroke:#ef4444,color:#f8fafc
+    style H1 fill:#0f172a,stroke:#22c55e,color:#f8fafc
+    style H2 fill:#0f172a,stroke:#ef4444,color:#f8fafc
+    style I fill:#0f172a,stroke:#22c55e,color:#f8fafc
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPEN SOURCE -->
+<section class="section">
+  <div class="eyebrow">Open Source</div>
+  <h2>Built to be shared.</h2>
+  <p class="lead">The clinical need MAXINE addresses is too important to be proprietary. Hospitals should be able to deploy it. Researchers should be able to improve it. Patients should benefit from it regardless of institutional budget.</p>
+
+  <div class="os-banner">
+    <div>
+      <h3>MAXINE is MIT Licensed</h3>
+      <p>Fork it. Improve it. Deploy it. The only requirement is that it reaches the patients who need it. If you're building on MAXINE — we want to know.</p>
+    </div>
+    <a href="https://github.com" class="os-btn">View Repository →</a>
+  </div>
+
+  <div class="card-grid-2" style="margin-top:24px;">
+    <div class="card">
+      <h3 style="font-size:16px;">MAXINE.v2 Roadmap</h3>
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px 0; border-bottom:1px solid var(--border);"><span>Speaker-independent voice recognition</span><span style="color:var(--blue); font-weight:600;">Planned</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px 0; border-bottom:1px solid var(--border);"><span>Wireless Bluetooth bed interface</span><span style="color:var(--blue); font-weight:600;">Planned</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px 0; border-bottom:1px solid var(--border);"><span>Mobile app companion (iOS / Android)</span><span style="color:var(--muted); font-weight:600;">Concept</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px 0; border-bottom:1px solid var(--border);"><span>Multi-patient profile support</span><span style="color:var(--muted); font-weight:600;">Concept</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; padding:8px 0;"><span>IEC 60601 medical device compliance</span><span style="color:var(--muted); font-weight:600;">Future</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:16px;">Lead Systems & Design Engineer</h3>
+      <div style="margin-top:16px;">
+        <p style="font-size:22px; font-weight:800; color:var(--heading); letter-spacing:-0.02em;">Amelia Arabe</p>
+        <p style="font-size:13px; color:var(--muted); margin-top:4px;">Computer & Electrical Design Engineer<br>Loyola University Maryland, Class of 2025</p>
+        <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:6px;">
+          <span style="font-size:11px; padding:3px 9px; border-radius:4px; background:var(--blue-pale); border:1px solid var(--blue-mid); color:var(--blue);">Systems Architecture</span>
+          <span style="font-size:11px; padding:3px 9px; border-radius:4px; background:var(--blue-pale); border:1px solid var(--blue-mid); color:var(--blue);">Embedded C++</span>
+          <span style="font-size:11px; padding:3px 9px; border-radius:4px; background:var(--blue-pale); border:1px solid var(--blue-mid); color:var(--blue);">Safety Engineering</span>
+          <span style="font-size:11px; padding:3px 9px; border-radius:4px; background:var(--light); border:1px solid var(--border); color:var(--body);">Team of 4</span>
+          <span style="font-size:11px; padding:3px 9px; border-radius:4px; background:var(--light); border:1px solid var(--border); color:var(--body);">VME Validated</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <p style="font-weight:700; color:var(--heading);">MAXINE.v1 · Voice Activated Recovery Companion</p>
+    <p style="margin-top:4px;">Developed through Volunteers for Medical Engineering · MIT Licensed · Open Source</p>
+  </div>
+  <p><em>Built for the patient who cannot reach the button.</em></p>
+</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#0f172a',
+      primaryTextColor: '#f8fafc',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#3b82f6',
+      secondaryColor: '#1e293b',
+      background: '#0f172a',
+      mainBkg: '#0f172a',
+      nodeBorder: '#3b82f6',
+      fontSize: '13px'
+    }
+  });
+</script>
+</body>
+</html>
